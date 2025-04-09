@@ -1,0 +1,5 @@
+venv/
+Documents
+static
+metadata.json
+vector_index.faiss

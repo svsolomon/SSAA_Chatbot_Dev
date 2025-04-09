@@ -1,0 +1,4 @@
+pip install python-docx faiss-cpu sentence-transformers
+pip install PyMuPDF
+pip install frontend
+pip install tools
