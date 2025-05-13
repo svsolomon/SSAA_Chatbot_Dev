@@ -4,9 +4,30 @@ import faiss
 import json
 import openai
 import warnings
+from utils import download_all_files_in_folder, download_blob_from_storage
 warnings.filterwarnings("ignore", category=UserWarning)
 from dotenv import load_dotenv
 load_dotenv()
+
+
+model_folder = "Models"                       # Folder name where the model is stored
+
+# Local path to save the files
+local_model_folder = "./models"  # Local directory where the model files will be saved
+
+# Create a local directory to store the model if it doesn't exist
+os.makedirs(local_model_folder, exist_ok=True)
+
+download_all_files_in_folder(model_folder,local_model_folder)
+
+blob_name = 'indexer'
+download_path = './vector_index.faiss'
+download_blob_from_storage(blob_name,download_path)
+
+blob_name = 'metadata.json'
+download_path = './metadata.json'
+download_blob_from_storage(blob_name,download_path)
+
 
 
 # Load embedding model
@@ -35,39 +56,7 @@ def search_index(query, index, metadata_list, model, top_k=3):
         })
     return results
 
-# def get_answer_from_openai(query: str, content: str, model: str = "gpt-3.5-turbo-0125") -> str:
-#     """
-#     Uses OpenAI's ChatCompletion API to answer a question based on the provided context.
-
-#     Args:
-#         query (str): The user's question.
-#         content (str): The context/content from which the answer should be extracted.
-#         model (str): OpenAI model to use (default is gpt-3.5-turbo-0125).
-
-#     Returns:
-#         str: The generated answer from OpenAI.
-#     """
-#     try:
-#         response = client.chat.completions.create(
-#             model=model,
-#             messages=[
-#                 {"role": "system", "content": "You are a helpful assistant that answers questions based on the given context."},
-#                 {"role": "user", "content": f"Context: {content}\n\nQuestion: {query}"}
-#             ],
-#             stream=True,
-#             temperature=0.2,
-#             max_tokens=300
-#         ) 
-#         return response.choices[0].message.content.strip()
-
-#     except Exception as e:
-#         return f"Error occurred: {e}"
-
 def get_answer_from_openai(query: str, content: str, model: str = "gpt-3.5-turbo-0125"):
-    """
-    Streams an answer from OpenAI based on provided context and query.
-    Yields chunks of the response for real-time display.
-    """
     try:
         response = client.chat.completions.create(
             model=model,
@@ -75,17 +64,13 @@ def get_answer_from_openai(query: str, content: str, model: str = "gpt-3.5-turbo
                 {"role": "system", "content": "You are a helpful assistant that answers questions based on the given context."},
                 {"role": "user", "content": f"Context: {content}\n\nQuestion: {query}"}
             ],
-            stream=True,
             temperature=0.2,
             max_tokens=300
-        ) 
-        for chunk in response:
-            if chunk.choices[0].delta.content:
-                yield chunk.choices[0].delta.content
-
+        )
+        # Access the correct content from the response
+        return response.choices[0].message.content.strip()
     except Exception as e:
-        yield f"Error occurred: {e}"
-
+        return f"Error occurred: {e}"
 
 def generate_answer(query):
     results = search_index(query, index, metadata_list, model)
