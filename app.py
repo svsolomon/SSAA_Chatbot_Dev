@@ -27,5 +27,5 @@ def read_root():
 @app.post("/query")
 def query_route(request: QueryInput):
     # Get the generated answer
-    answer = generate_answer(request.query)
-    return {"answer": answer}
+    answer,documents,status = generate_answer(request.query)
+    return {"answer": answer, 'documents':documents,'status':status}

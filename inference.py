@@ -71,8 +71,42 @@ def get_answer_from_openai(query: str, content: str, model: str = "gpt-3.5-turbo
         return response.choices[0].message.content.strip()
     except Exception as e:
         return f"Error occurred: {e}"
+    
+def query_flagging(query: str, model: str = "gpt-3.5-turbo-0125") -> str:
+    """
+    Determines if a query is related to insurance or liability.
+
+    Args:
+        query (str): The user's question.
+        model (str): OpenAI model to use (default is gpt-3.5-turbo-0125).
+
+    Returns:
+        str: "1" if the query is related to insurance/liability, "0" otherwise.
+    """
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": "Return 1 if the user's query is related to insurance or liability. Otherwise, return 0. Reply with only 1 or 0."},
+                {"role": "user", "content": query}
+            ],
+            temperature=0.0,
+            max_tokens=1
+        )
+        return response.choices[0].message.content.strip()
+
+    except Exception as e:
+        return f"Error occurred: {e}"
 
 def generate_answer(query):
+    status = query_flagging(query)
+    documents = []
+    context=''
     results = search_index(query, index, metadata_list, model)
-    context = ''.join(res['text'] for res in results)
-    return get_answer_from_openai(query, context)
+    for res in results:
+        documents.append(res['document'])
+        context += res['text']
+    # context = ''.join(res['text'] for res in results)
+    documents = list(set(documents))
+    answer = get_answer_from_openai(query, context)
+    return answer,documents,status
