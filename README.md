@@ -67,9 +67,10 @@ This repository hosts an AI-powered chatbot system developed for the **Self Stor
      3. FAISS retrieves top matching content
      4. Retrieved content and query are sent to OpenAI's model
      5. The final answer is returned to the user
+---
 
 Note: The user only needs to interact with the front-end (Chatbot UI) by asking queries. This will cause the backend api to be called which will run the inference pipeline and returns the answer as the reponse which will be displayed to the user along with the metadata and disclaimer message. 
----
+
 
 ## ⚡ Powered By
 
